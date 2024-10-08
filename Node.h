@@ -13,7 +13,6 @@ class Node{
   ~Node();
   //initializing variables
 
-  //realistically I shouldn't need any of these, all I should need is a data holder - delete later.
   Node* parent;
   Node* left;
   Node* right;

@@ -4,6 +4,7 @@
 #include "Group.h"
 
 
+//constructor
 Group::Group(){
     left = NULL;
     right = NULL;
@@ -15,10 +16,11 @@ Group::Group(){
     groupMiddleRight = NULL;
     numNodes = 0;
 }
-
+//destructor
 Group::~Group(){
 
 }
+//getting the group's sibling
 Group* Group::getSiblingGroup(){
     if(this->getParentGroup()->getLeftGroup() == this){
         if(this->getParentGroup()->getMiddleGroupLeft() != NULL){
@@ -45,6 +47,7 @@ Group* Group::getSiblingGroup(){
     return NULL;
 
 }
+//getting the middle group, either groupMiddleLeft or groupMiddleRight
 Group* Group::getMiddleGroup(){
     if(groupMiddleLeft != NULL){
         return groupMiddleLeft;
@@ -56,6 +59,7 @@ Group* Group::getMiddleGroup(){
         return NULL;
     }
 }
+//setting the child/parent groups of this group.
 void Group::setRightGroup(Group* newRightGroup){
     groupRight = newRightGroup;
 }
@@ -72,6 +76,8 @@ void Group::setMiddleGroupRight(Group* newMiddleGroupRight){
 void Group::setParentGroup(Group* newParent){
     parent = newParent;
 }
+
+//setting the nodes in this group
 void Group::setRight(Node* newRight){
     right = newRight;
 } 
@@ -81,6 +87,8 @@ void Group::setLeft(Node* newLeft){
 void Group::setMiddle(Node* newMiddle){
     middle = newMiddle;
 }
+
+//setting the properties of the group.
 void Group::setNumNodes(int newNumNodes){
     numNodes = newNumNodes;
 }
@@ -90,6 +98,8 @@ void Group::setLow(int newLow){
 void Group::setHigh(int newHigh){
     high = newHigh;
 }
+
+//getters
 Group* Group::getRightGroup(){
     return groupRight;
 }

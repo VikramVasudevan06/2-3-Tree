@@ -1,5 +1,14 @@
-//https://www.cs.princeton.edu/~dpw/courses/cos326-12/ass/2-3-trees.pdf
+/*
+Author: Vikram Vasudevan
+Date: 10/7/2024
+Description: This program creates a 2-3 tree and can display it in the terminal. Users can add values to the tree, 
+remove values, search for values, and print the tree out. The tree self-balances any time a specific group gains 3+
+numbers.
+Citations - This website helped with developing the tree rotations: //https://www.cs.princeton.edu/~dpw/courses/cos326-12/ass/2-3-trees.pdf
+*/
 
+
+//includes
 #include <iostream>
 #include <cstring>
 #include "Node.h"
@@ -9,6 +18,8 @@
 
 using namespace std;
 
+
+//function prototypes
 void add(Group* &root, Group* current, Node* newNode);
 void fixTree(Group* &root, Group* current);
 void print(Group* current, int count);
@@ -23,46 +34,44 @@ void caseFour(Group* &root, Group* current);
 void caseFive(Group* &root, Group* current);
 void caseSix(Group* &root, Group* current);
 
+//main
 int main(){
     Group* root = NULL;
     bool stillRunning = true;
+
+    //while loop where code runs
     while(stillRunning == true){
-       
+        //prompting user for choice
         cout << "What would you like to do? ADD, REMOVE, SEARCH, PRINT, or QUIT" << endl; 
         char choice[50];
         cin.get(choice, 50);
         cin.get();
-
+        //if statement chains for user choice
         if(strcmp(choice, "ADD") == 0){
             char input[50];
             char method;
-            cout << "Would you like to enter by file (f) or by console (c)? " << endl;
-            cin >> method;
+            cout << "How many numbers will you be entering? " << endl;
+            int numNums;
+            cin >> numNums;
             cin.get();
-            if(method == 'c'){
-                cout << "How many numbers will you be entering? " << endl;
-                int numNums;
-                cin >> numNums;
+            cout << "Enter your string of numbers: " << endl;
+            //processing numbers, adding them to nodes, and calling the add function.
+            for(int i = 0; i < numNums; i++){
+                int tempInt;
+                cin >> tempInt;
                 cin.get();
-                cout << "Enter your string of numbers: " << endl;
-                for(int i = 0; i < numNums; i++){
-                    int tempInt;
-                    cin >> tempInt;
-                    cin.get();
-                    Node* newNode = new Node();
-                    newNode->setInformation(tempInt);
-                    //add
-                    add(root, root, newNode);
-                }
+                Node* newNode = new Node();
+                newNode->setInformation(tempInt);
+                //add
+                add(root, root, newNode);
             }
-
         }
         else if(strcmp(choice, "REMOVE") == 0){
             int value;
             cout << "What number would you like to remove? " << endl;
             cin >> value;
             cin.get();
-            //remove
+            //calling the remove function
             removeMechanics(root, search(root, value), value);
         }
         else if(strcmp(choice, "SEARCH") == 0){
@@ -70,20 +79,24 @@ int main(){
             cout << "What number would like to search for? " << endl;
             cin >> value;
             cin.get();
+            //calling the search function
             search(root, value);
         }
         else if(strcmp(choice, "PRINT") == 0){
+            //calling the print function
             print(root, 0);
         }
         else if(strcmp(choice, "QUIT") == 0){
+            //exiting the while loop.
             stillRunning = false;
         }
     }
 }
 
+//function to find the successor group of a current value.
 Group* findSuccessor(Group* current, int value){
     Group* successor = current;
-
+    //if there are two nodes, if the middle group exists, go to the middle and then go as far left as possible.
     if(current->getNumNodes() == 2){
         if(value == current->getLow()){
             if(current->getMiddleGroup() != NULL){
@@ -95,25 +108,21 @@ Group* findSuccessor(Group* current, int value){
             }
         }
     }
+    //if there's only one node, go right, and then go as far left as possible to find the successor.
     if(current->getRightGroup() != NULL){
         successor = current->getRightGroup();
         while(successor->getLeftGroup() != NULL){
             successor = successor->getLeftGroup();
         }
     }
-    cout << "IN SUCCESSOR" << endl;
-    cout << successor->getMiddle()->getInformation() << endl;
     return successor;
 
 }
 
+//code for the first deletion case. This codes for all of the group/node rotations.
 void caseOne(Group* &root, Group* current){
-    cout << "Made it in" << endl;
-    cout << "Current values" << endl;
-    cout << current->getSiblingGroup()->getHigh() << endl;
-    cout << current->getSiblingGroup()->getLow() << endl;
+    //resetting group children/parents
     if(current == current->getParentGroup()->getLeftGroup()){
-        cout << "1 IN HERE" << endl;
         current->getSiblingGroup()->setLeft(current->getParentGroup()->getMiddle());
         current->getSiblingGroup()->setLow(current->getSiblingGroup()->getLeft()->getInformation());
         current->getSiblingGroup()->setMiddleGroupLeft(current->getSiblingGroup()->getLeftGroup());
@@ -121,101 +130,71 @@ void caseOne(Group* &root, Group* current){
 
     }
     else if(current == current->getParentGroup()->getRightGroup()){
-        cout << "2 IN HERE" << endl;
-         cout << current->getSiblingGroup()->getHigh() << endl;
-        cout << current->getSiblingGroup()->getLow() << endl;
         current->getSiblingGroup()->setRight(current->getParentGroup()->getMiddle());
-        cout << current->getParentGroup()->getMiddle()->getInformation() << endl;
         current->getSiblingGroup()->setHigh(current->getSiblingGroup()->getRight()->getInformation());
         current->getSiblingGroup()->setMiddleGroupLeft(current->getSiblingGroup()->getRightGroup());
         current->getSiblingGroup()->setRightGroup(current->getMiddleGroup());
-        
-        cout << "OOP: " << current->getSiblingGroup()->getHigh() << endl;
-        cout << "SY: " << current->getSiblingGroup()->getLow() << endl;
     }
     if(current->getMiddleGroup() != NULL){
         current->getMiddleGroup()->setParentGroup(current->getSiblingGroup());
     }
-
-    cout << current->getSiblingGroup()->getHigh() << endl;
-    cout << current->getSiblingGroup()->getLow() << endl;
-    cout << "3" << endl;
+    //resetting group data.
     current->getSiblingGroup()->setNumNodes(2);
-    cout << "4" << endl;
-    cout << current->getParentGroup()->getMiddle()->getInformation() << endl;
-    cout << current->getMiddle()->getInformation() << endl;
+   
     current->getParentGroup()->setMiddle(current->getMiddle());
-    cout << "5" << endl;
     current->getParentGroup()->setMiddleGroupLeft(current->getSiblingGroup());
     if(current->getParentGroup()->getMiddleGroupLeft() != NULL){
         current->getParentGroup()->getMiddleGroupLeft()->setParentGroup(current->getParentGroup());
     }
 
-    cout << "6" << endl;
     Group* temp = current->getParentGroup();
-    cout << "7" << endl;
     current->getParentGroup()->setLeftGroup(NULL);
-    cout << "8" << endl;
     current->getParentGroup()->setRightGroup(NULL);
-    cout << "9" << endl;
-    cout << "HERE" << endl;
+    //caseOne is not a terminating case. At the end of caseOne, call callCases again.
     callCases(root, temp);
 }
 
+//code for the second deletion case. This codes for all of the group/node rotations.
 void caseTwo(Group* &root, Group* current){
     current->getMiddle()->setInformation((current->getParentGroup()->getMiddle()->getInformation()));
     if(current == current->getParentGroup()->getLeftGroup()){
-        cout << "Firstly in here" << endl;
         current->getParentGroup()->getMiddle()->setInformation(current->getSiblingGroup()->getLow());
-        cout << "Made it here" << endl;
         if(current->getSiblingGroup()->getLeft() != NULL && current->getSiblingGroup()->getLeft()->getInformation() == current->getSiblingGroup()->getLow()){
-            cout << "entered this" << endl;
             current->getSiblingGroup()->setLeft(NULL);
             
         }
         else{
-            cout << "no this one" << endl;
             current->getSiblingGroup()->setMiddle(current->getSiblingGroup()->getRight());
             current->getSiblingGroup()->setRight(NULL);
             
         }
-        cout << "out here" << endl;
         current->getSiblingGroup()->setLow(current->getSiblingGroup()->getMiddle()->getInformation());
         current->setLeftGroup(current->getMiddleGroupLeft());
         current->setMiddleGroupLeft(NULL);
-        cout << "Whoop" << endl;
         current->setRightGroup(current->getSiblingGroup()->getLeftGroup());
         if(current->getRightGroup() != NULL){
             current->getRightGroup()->setParentGroup(current);
         }
         current->getSiblingGroup()->setLeftGroup(current->getSiblingGroup()->getMiddleGroup());
-        cout << "OUT" << endl;
         
     }
     else if(current == current->getParentGroup()->getRightGroup()){
-        cout << "This one" << endl;
         current->getParentGroup()->getMiddle()->setInformation(current->getSiblingGroup()->getHigh());
-        cout << "Past this" << endl;
         if(current->getSiblingGroup()->getRight() != NULL && current->getSiblingGroup()->getRight()->getInformation() == current->getSiblingGroup()->getHigh()){
-            cout << "HELLO" << endl;
             current->getSiblingGroup()->setRight(NULL);
         }
         else{
-            cout << "Vibes" << endl;
             current->getSiblingGroup()->setMiddle(current->getSiblingGroup()->getLeft());
             current->getSiblingGroup()->setLeft(NULL);
         }
-        cout << "Sweet Caroline" << endl;
         current->getSiblingGroup()->setHigh(current->getSiblingGroup()->getMiddle()->getInformation());
         current->setRightGroup(current->getMiddleGroupLeft());
         current->setMiddleGroupLeft(NULL);
-        cout << "HERE" << endl;
         current->setLeftGroup(current->getSiblingGroup()->getRightGroup());
         if(current->getSiblingGroup()->getRightGroup() != NULL){
             current->getSiblingGroup()->setParentGroup(current);
         }
         current->getSiblingGroup()->setRightGroup(current->getSiblingGroup()->getMiddleGroup());
-        cout << "RAHHH" << endl;
     }
     if(current->getSiblingGroup()->getMiddleGroupLeft() != NULL){
         current->getSiblingGroup()->setMiddleGroupLeft(NULL);
@@ -223,16 +202,19 @@ void caseTwo(Group* &root, Group* current){
     else{
         current->getSiblingGroup()->setMiddleGroupRight(NULL);
     }
+    //resetting group data.
     current->getParentGroup()->setHigh(current->getParentGroup()->getMiddle()->getInformation());
     current->getParentGroup()->setLow(current->getParentGroup()->getMiddle()->getInformation());
     current->setHigh(current->getMiddle()->getInformation());
     current->setLow(current->getMiddle()->getInformation());
     current->getSiblingGroup()->setNumNodes(1);
-    cout << "DONE" << endl;
 
 }
 
+
+//code for the third deletion case. This codes for all of the group/node rotations.
 void caseThree(Group* &root, Group* current){
+    //changing group connections
     if(current == current->getParentGroup()->getLeftGroup()){
         if(current->getParentGroup()->getMiddle()->getInformation() == current->getParentGroup()->getLow()){
             current->getSiblingGroup()->setLeft(current->getParentGroup()->getMiddle());
@@ -276,6 +258,7 @@ void caseThree(Group* &root, Group* current){
             current->getSiblingGroup()->setParentGroup(current->getParentGroup());
         }
     }
+    //resetting group data
     current->getSiblingGroup()->setNumNodes(2);
     current->getParentGroup()->setNumNodes(1);
     current->getParentGroup()->setHigh(current->getParentGroup()->getMiddle()->getInformation());
@@ -289,7 +272,9 @@ void caseThree(Group* &root, Group* current){
     delete current;
 }
 
+//code for the fourth deletion case. This codes for all of the group/node rotations.
 void caseFour(Group* &root, Group* current){
+    //changing group connections
     if(current->getParentGroup()->getRightGroup()->getNumNodes() == 1){
         if(current->getParentGroup()->getMiddle()->getInformation() == current->getParentGroup()->getHigh()){
             current->getParentGroup()->getRightGroup()->setLeft(current->getParentGroup()->getMiddle());
@@ -338,7 +323,9 @@ void caseFour(Group* &root, Group* current){
     delete current;
 }
 
+//code for the fifth deletion case. This codes for all of the group/node rotations.
 void caseFive(Group* &root, Group* current){
+    //changing group connections
     if(current == current->getParentGroup()->getLeftGroup()){
         current->getMiddle()->setInformation(current->getParentGroup()->getLow());
         if(current->getParentGroup()->getLeft() != NULL){
@@ -397,6 +384,7 @@ void caseFive(Group* &root, Group* current){
     else{
         current->getSiblingGroup()->setMiddleGroupRight(NULL);
     }
+    //resetting group data.
     current->setHigh(current->getMiddle()->getInformation());
     current->setLow(current->getMiddle()->getInformation());
     current->getSiblingGroup()->setNumNodes(1);
@@ -404,7 +392,10 @@ void caseFive(Group* &root, Group* current){
     current->getSiblingGroup()->setLow(current->getSiblingGroup()->getMiddle()->getInformation());
 }
 
+
+//code for the sixth deletion case. This codes for all of the group/node rotations.
 void caseSix(Group* &root, Group* current){
+    //changing group connections
     if(current->getParentGroup()->getLeftGroup()->getNumNodes() == 2){
         current->getMiddle()->setInformation(current->getParentGroup()->getLow());
         if(current->getParentGroup()->getLeft() != NULL){
@@ -466,68 +457,56 @@ void caseSix(Group* &root, Group* current){
     }
 }
 
+//function that calls the relevant delete cases
 void callCases(Group* &root, Group* current){
     print(root, 0);
-    cout << "Let's call some cases" << endl;
     if(current == root){
-        cout << "YOOO" << endl;
     }
     if(current == root){
-        cout << "IG Case 0? " << endl;
         root = current->getMiddleGroup();
-        cout << current->getHigh() << endl;
-        cout << current->getLow() << endl;
         current->setMiddleGroupLeft(NULL);
         root->setParentGroup(NULL);
         delete current;
         return;
     }
+    //list of if statements. Depending on which is satisfied, the relevant case will be called.
     if(current->getParentGroup()->getNumNodes() == 1 && current->getSiblingGroup()->getNumNodes() == 1){
-        cout << "Case 1 " << endl;
         caseOne(root, current);
         return;
     }
     else if(current->getParentGroup()->getNumNodes() == 1 && current->getSiblingGroup()->getNumNodes() == 2){
-        cout << "Case 2" << endl;
         caseTwo(root, current);
         return;
     }
     else if(current->getParentGroup()->getNumNodes() == 2 && current->getSiblingGroup()->getNumNodes() == 1){
-        cout << "Case 3" << endl;
         caseThree(root, current);
         return;
     }
     else if(current->getParentGroup()->getNumNodes() == 2 && current->getParentGroup()->getMiddleGroup() == current && (current->getParentGroup()->getLeftGroup()->getNumNodes() == 1 || current->getParentGroup()->getRightGroup()->getNumNodes() == 1)){
-        cout << "Case 4" << endl;
         caseFour(root, current);
         return;
     }
     else if(current->getParentGroup()->getNumNodes() == 2 && current->getSiblingGroup()->getNumNodes() == 2){
-        cout << "Case 5" << endl;
         caseFive(root, current);
         return;
     }
     else if(current->getParentGroup()->getNumNodes() == 2 && current->getParentGroup()->getMiddleGroup() == current && (current->getParentGroup()->getLeftGroup()->getNumNodes() == 2 || current->getParentGroup()->getRightGroup()->getNumNodes() == 2)){
-        cout << "Case 6 " << endl;
         caseSix(root, current);
         return;
     }
 }
 
-
+//function that handles the initial remove call
 void removeMechanics(Group* &root, Group* currentInitial, int value){
+    //if only the root exists, delete it and declare the tree empty.
     if(root->getMiddle()->getInformation() == value && root->getNumNodes() == 1){
         root = NULL;
         cout << "The tree is empty" << endl;
         return;
     }
-    cout << "ENTERED HERE" << endl;
-    cout << currentInitial->getNumNodes() << endl;
-    cout << currentInitial->getMiddle()->getInformation() << endl;
     Group* current = findSuccessor(currentInitial, value);
-    cout << current->getMiddle()->getInformation() << endl;
+    //swapping the values of the current and the successor, 
     if(current != currentInitial){
-        cout << "RUNNING THIS AT ALL?  " << endl;
         if(currentInitial->getLeft() != NULL && currentInitial->getLeft()->getInformation() == value){
             currentInitial->getLeft()->setInformation(current->getLow());
         }
@@ -542,46 +521,36 @@ void removeMechanics(Group* &root, Group* currentInitial, int value){
     if(current != currentInitial){
         value = current->getLow();
     }
+    //if current - which is the successor - has two nodes, delete the successor node and readjust the remaining node
+    //so that it is in the middle slot.
     if(current->getNumNodes() == 2){
-        cout << "Woho1 " << endl;
-        cout << "CURRENT INFORMATION: " << current->getMiddle()->getInformation() << endl;
-        cout << "VALUE: " << value << endl;
         if(current->getMiddle()->getInformation() == value){
             if(current->getLeft() != NULL){
-                cout << "THIS ONE" << endl;
                 current->setHigh(current->getLeft()->getInformation());
                 current->setMiddle(current->getLeft());
                 current->setLeft(NULL);
             }
             else{
-                cout << "THIS TWO" << endl;
                 current->setLow(current->getRight()->getInformation());
-                cout << current->getRight()->getInformation() << endl;
                 current->setMiddle(current->getRight());
-                cout << current->getMiddle()->getInformation() << endl;
                 current->setRight(NULL);
             }
         }
         else if (current->getMiddle()->getInformation() > value){
-            cout << "THIS THREE" << endl;
             current->setLeft(NULL);
             current->setLow(current->getMiddle()->getInformation());
         }
         else{
-            cout << "THIS FOUR" << endl;
             current->setRight(NULL);
             current->setHigh(current->getMiddle()->getInformation());
         }
         current->setNumNodes(1);
     }
     else if(current->getNumNodes() == 1){
-        cout << "woHo2" << endl;
+        //if the successor only has one node, and its parent only has one node, follow this block of code.
         if(current->getParentGroup()->getNumNodes() == 1){
-            //parent has 1 node
-            cout << "Parent 1" << endl;
-            cout << current->getParentGroup()->getMiddle()->getInformation() << endl;
+            //if the sibling of the group has two nodes, steal one of the sibling's nodes and rearrange.
             if(current->getSiblingGroup()->getNumNodes() == 2){
-                cout << "This version" << endl;
                 delete current->getMiddle();
                 current->setMiddle(current->getParentGroup()->getMiddle());
                 if(current->getMiddle()->getInformation() > current->getSiblingGroup()->getMiddle()->getInformation()){
@@ -611,8 +580,8 @@ void removeMechanics(Group* &root, Group* currentInitial, int value){
                 current->getSiblingGroup()->setHigh(current->getSiblingGroup()->getMiddle()->getInformation());
                 current->getSiblingGroup()->setLow(current->getSiblingGroup()->getMiddle()->getInformation());
             }
+            //otherwise, call the delete cases.
             else if(current->getSiblingGroup()->getNumNodes() == 1){
-                cout << "Cool kids" << endl;
                 callCases(root, current);
             }
 
@@ -620,11 +589,9 @@ void removeMechanics(Group* &root, Group* currentInitial, int value){
 
         }
         else if(current->getParentGroup()->getNumNodes() == 2){
-            cout << "2 numNodes" << endl;
-            cout << current->getParentGroup()->getMiddle()->getInformation() << endl;
-            //parent has 2 nodes
+            //if parent has two nodes, rearrange the nodes, depending on how many nodes the sibling has, and whether the successor
+            //group is the left group, right group, or middle group.
             if(current == current->getParentGroup()->getLeftGroup()){
-                cout << "THIS THE ISSUE?" << endl;
                 
 
                 if(current->getSiblingGroup()->getNumNodes() == 2){
@@ -656,27 +623,19 @@ void removeMechanics(Group* &root, Group* currentInitial, int value){
 
                     if(current->getParentGroup()->getMiddle()->getInformation() == current->getParentGroup()->getLow()){
 
-                        cout << "this" << endl;
                         current->getSiblingGroup()->setLeft(current->getParentGroup()->getMiddle());
                         current->getParentGroup()->setMiddle(current->getParentGroup()->getRight());
                         current->getParentGroup()->setRight(NULL);
                     }
                     else{
-                        cout << "This" << endl;
                         current->getSiblingGroup()->setLeft(current->getParentGroup()->getLeft());
-                        cout << current->getParentGroup()->getLeft()->getInformation() << endl;
                         current->getParentGroup()->setLeft(NULL);
                     }
-                    cout << "RUNNING THIS " << endl;
                     current->getSiblingGroup()->setLow(current->getSiblingGroup()->getLeft()->getInformation());
-                    cout << "1" << endl;
                     current->getParentGroup()->setLow(current->getParentGroup()->getMiddle()->getInformation());
-                    cout << "2" << endl;
                     current->getParentGroup()->setNumNodes(1);
                     current->getSiblingGroup()->setNumNodes(2);
-                    cout << "3" << endl;
                     current->getParentGroup()->setLeftGroup(current->getSiblingGroup());
-                    cout << "4" << endl;
                     if(current->getParentGroup()->getMiddleGroupLeft() != NULL){
                         current->getParentGroup()->setMiddleGroupLeft(NULL);
                     }
@@ -689,15 +648,11 @@ void removeMechanics(Group* &root, Group* currentInitial, int value){
                 }
 
             }
-            cout << "GETTING HERE? " << endl;
             if(current == current->getParentGroup()->getRightGroup()){
-                cout << "FOUND THIS PLACE" << endl;
                 if(current == current->getParentGroup()->getRightGroup()){
                     if(current->getSiblingGroup()->getNumNodes() == 2){
                         if(current->getParentGroup()->getRight()->getInformation() == current->getParentGroup()->getHigh()){
                             current->setMiddle(current->getParentGroup()->getRight());
-                            cout << "IN HERE" << endl;
-                            cout << "NUM: " << current->getParentGroup()->getRight()->getInformation() << endl;
                         }
                         else if(current->getParentGroup()->getMiddle()->getInformation() == current->getParentGroup()->getHigh()){
                             current->setMiddle(current->getParentGroup()->getMiddle());
@@ -725,7 +680,6 @@ void removeMechanics(Group* &root, Group* currentInitial, int value){
                             current->getSiblingGroup()->setRight(current->getParentGroup()->getRight());
                             current->getParentGroup()->setRight(NULL);
                         }
-                        cout << "RUNNING THIS " << endl;
                         current->getSiblingGroup()->setHigh(current->getSiblingGroup()->getRight()->getInformation());
                         current->getParentGroup()->setHigh(current->getParentGroup()->getMiddle()->getInformation());
                         current->getParentGroup()->setNumNodes(1);
@@ -746,9 +700,9 @@ void removeMechanics(Group* &root, Group* currentInitial, int value){
                 }
             }
             else if(current == current->getParentGroup()->getMiddleGroup()){
-                cout << "We're entering this version?" << endl; 
+                //if current is the middle group, steal nodes from either the left group or the right group. getSibling does not work
+                //if the current group is the middle group, thus three rounds of if statements are necessary.
                 if(current->getParentGroup()->getLeftGroup()->getNumNodes() == 2){
-                    cout << "SHould be entering this" << endl;
                     current->getParentGroup()->getLeftGroup()->setNumNodes(1);
                     current->getMiddle()->setInformation(current->getParentGroup()->getLow());
                     current->setLow(current->getParentGroup()->getLow());
@@ -759,7 +713,6 @@ void removeMechanics(Group* &root, Group* currentInitial, int value){
                     else{
                         current->getParentGroup()->getMiddle()->setInformation(current->getParentGroup()->getLeftGroup()->getHigh());
                     }
-                    cout << "STILL ISSUE" << endl;
                     current->getParentGroup()->setLow(current->getParentGroup()->getLeftGroup()->getHigh());
                     if(current->getParentGroup()->getLeftGroup()->getRight() != NULL){
                         current->getParentGroup()->getLeftGroup()->setRight(NULL);
@@ -768,24 +721,19 @@ void removeMechanics(Group* &root, Group* currentInitial, int value){
                         current->getParentGroup()->getLeftGroup()->setMiddle(current->getParentGroup()->getLeftGroup()->getLeft());
                         current->getParentGroup()->getLeftGroup()->setLeft(NULL);
                     }
-                    cout << "NOT YET" << endl;
                     current->getParentGroup()->getLeftGroup()->setHigh(current->getParentGroup()->getLeftGroup()->getMiddle()->getInformation());
                 }
                 else if(current->getParentGroup()->getRightGroup()->getNumNodes() == 2){
-                    cout << "NO THIS ONE" << endl;
                     current->getParentGroup()->getRightGroup()->setNumNodes(1);
                     current->getMiddle()->setInformation(current->getParentGroup()->getHigh());
                     current->setLow(current->getParentGroup()->getHigh());
                     current->setHigh(current->getParentGroup()->getHigh());
-                    cout << "SUMMER VIBES" << endl;
                     if(current->getParentGroup()->getRight() != NULL){
                         current->getParentGroup()->getRight()->setInformation(current->getParentGroup()->getRightGroup()->getLow());
                     }
                     else{
                         current->getParentGroup()->getMiddle()->setInformation(current->getParentGroup()->getRightGroup()->getLow());
                     }
-                    cout << "CUZ HOW MANY COUTS" << endl;
-                    cout << current->getParentGroup()->getRightGroup()->getNumNodes() << endl;
                     current->getParentGroup()->setHigh(current->getParentGroup()->getRightGroup()->getLow());
                     if(current->getParentGroup()->getLeftGroup()->getRight() == NULL){
                         current->getParentGroup()->getRightGroup()->setLeft(NULL);
@@ -794,14 +742,10 @@ void removeMechanics(Group* &root, Group* currentInitial, int value){
                         current->getParentGroup()->getRightGroup()->setMiddle(current->getParentGroup()->getRightGroup()->getRight());
                         current->getParentGroup()->getRightGroup()->setRight(NULL);
                     }
-                    cout << "DOES A WISE MAN NEED" << endl;
-                    cout << current->getParentGroup()->getRightGroup()->getNumNodes() << endl;
-                    cout << current->getParentGroup()->getRightGroup()->getMiddle()->getInformation() << endl;
                     current->getParentGroup()->getRightGroup()->setLow(current->getParentGroup()->getRightGroup()->getMiddle()->getInformation());
-                    cout << "SOMETHING WRONG WITH THIS?" << endl;
                 }
                 else{
-                    cout << "HERE" << endl;
+                    //if neither sibling has two nodes, adjust the nodes as follows.
                     Node* temp = new Node();
                     temp->setInformation(current->getParentGroup()->getLow());
                     current->getParentGroup()->getLeftGroup()->setRight(temp);
@@ -809,21 +753,17 @@ void removeMechanics(Group* &root, Group* currentInitial, int value){
                     current->getParentGroup()->getLeftGroup()->setNumNodes(2);
                     current->getParentGroup()->setNumNodes(1);
                     if(current->getParentGroup()->getMiddle()->getInformation() == current->getParentGroup()->getLow()){
-                        cout << "THIS? " << endl;
                         current->getParentGroup()->setMiddle(current->getParentGroup()->getRight());
                         current->getParentGroup()->setRight(NULL);
                     }
                     else{
-                        cout << "OR THAT" << endl;
                         current->getParentGroup()->setLeft(NULL);
                     }
                     current->getParentGroup()->setLow(current->getParentGroup()->getMiddle()->getInformation());
                     if(current->getParentGroup()->getMiddleGroupLeft() != NULL){
-                        cout << "THIS ONE" << endl;
                         current->getParentGroup()->setMiddleGroupLeft(NULL);
                     }
                     else{
-                        cout << "OR THAT ONE" << endl;
                         current->getParentGroup()->setMiddleGroupRight(NULL);
                     }
                     delete current;
@@ -834,11 +774,10 @@ void removeMechanics(Group* &root, Group* currentInitial, int value){
 }
 
 
-
+//function that handles the initial add call.
 void add(Group* &root, Group* current, Node* newNode){
     //if root is null
     if(root == NULL){
-        cout << "IN HERE, ROOT IS NULL" << endl;
         root = new Group();
         root->setMiddle(newNode);
         root->setNumNodes(1);
@@ -847,39 +786,30 @@ void add(Group* &root, Group* current, Node* newNode){
     }
     //if root isn't null
     else{
-        cout << "Inside here" << endl;
-        cout << newNode->getInformation() << " : NEW NODE" << endl;
-        cout << "HIGH: " << current->getHigh() << endl;
-        cout << "LOW: " << current->getLow() << endl;
         //traversing to correct location in tree
         if(newNode->getInformation() < current->getLow()){
             if(current->getLeftGroup() != NULL){
-                cout << "1" << endl;
                 add(root, current->getLeftGroup(), newNode);
                 return;
             }
         }
         else if(newNode->getInformation() > current->getLow() && newNode->getInformation() < current->getHigh()){
             if(current->getMiddleGroupLeft() != NULL){
-                cout << "2" << endl;
                 add(root, current->getMiddleGroupLeft(), newNode);
                 return;
             }
             else if(current->getMiddleGroupRight() != NULL){
-                cout << "3" << endl;
                 add(root, current->getMiddleGroupRight(), newNode);
                 return;
             }
         }
         else if(newNode->getInformation() > current->getHigh()){
             if(current->getRightGroup() != NULL){
-                cout << "4" << endl;
                 add(root, current->getRightGroup(), newNode);
                 return;
             }
         }
         //if there's only one node, just adding it in. 
-        cout << "No Traversal" << endl;
         if(current->getNumNodes() == 1){
             if(newNode->getInformation() < current->getMiddle()->getInformation()){
                 current->setLeft(newNode);
@@ -892,9 +822,6 @@ void add(Group* &root, Group* current, Node* newNode){
             current->setNumNodes(2);
         }
         else if(current->getNumNodes() == 2){
-            cout << "There are two nodes" << endl;
-            cout << current->getMiddle()->getInformation() << "Mid" << endl;
-            cout << current->getNumNodes() << ": Nodes" << endl;
         //if there are two nodes
             if(current->getLeft() == NULL){
                 if(newNode->getInformation() < current->getMiddle()->getInformation()){
@@ -930,18 +857,18 @@ void add(Group* &root, Group* current, Node* newNode){
                     }
                 }
             }
+            //call fixTree after adding a third node.
             fixTree(root, current);
         }
     }
 }
-
+//this function fixes the tree after three nodes have been added to a single group.
 void fixTree(Group* &root, Group* current){
-    cout << "Time to fix this tree" << endl;
     Group* left = new Group();
     Group* right = new Group();
     Group* parent;
+    //if there is no parent, create one.
     if(current->getParentGroup() == NULL){
-        cout << "Parent is null" << endl;
         parent = new Group();
         root = parent;
 
@@ -950,7 +877,6 @@ void fixTree(Group* &root, Group* current){
         parent = current->getParentGroup();
     }
 
-    //has to be fixed
     left->setParentGroup(parent);
     right->setParentGroup(parent);
     left->setLeftGroup(current->getLeftGroup());
@@ -972,6 +898,7 @@ void fixTree(Group* &root, Group* current){
     if(current->getRightGroup() != NULL){
         current->getRightGroup()->setParentGroup(right);
     }
+    //splitting each node into its own unique group.
     left->setMiddle(current->getLeft());
     left->setLow(current->getLeft()->getInformation());
     left->setHigh(current->getLeft()->getInformation());
@@ -981,6 +908,7 @@ void fixTree(Group* &root, Group* current){
     right->setMiddle(current->getRight());
     right->setNumNodes(1);
 
+    //adding the new unique groups to the parent's network.
     if(parent->getNumNodes() == 2){
         if(parent->getLeft() != NULL){
             if(current->getMiddle()->getInformation() < parent->getLeft()->getInformation()){
@@ -1090,9 +1018,8 @@ void fixTree(Group* &root, Group* current){
     delete current;
 }
 
+//searching through the tree to determine if the value parameter exists.
 Group* search(Group* current, int value){
-    cout << "LOW: " << current->getLow() << endl;
-    cout << "HIGH: " << current->getHigh() << endl;
     if(current->getLeft() != NULL){
         if(value == current->getLeft()->getInformation()){
             cout << "This value exists!" << endl;
@@ -1141,7 +1068,7 @@ Group* search(Group* current, int value){
     return NULL;
 }
 
-
+//following a similar traversal path to the search function, this function prints out the tree.
 void print(Group* current, int count){
     if(count == 0 && current == NULL){
         cout << "The tree is empty" << endl;
@@ -1155,7 +1082,7 @@ void print(Group* current, int count){
         for(int i = 0; i < count; i++){
             cout << '\t';
         }
-        cout << current->getLeft()->getInformation() << "a"<<endl;
+        cout << current->getLeft()->getInformation() <<endl;
     }
     if(current->getMiddleGroupLeft() != NULL){
         print(current->getMiddleGroupLeft(), count + 1);
@@ -1164,7 +1091,7 @@ void print(Group* current, int count){
         for(int i = 0; i < count; i++){
             cout << '\t';
         }
-        cout << current->getMiddle()->getInformation() <<"b"<< endl;
+        cout << current->getMiddle()->getInformation() << endl;
     }
 
 
@@ -1175,7 +1102,7 @@ void print(Group* current, int count){
         for(int i = 0; i < count; i++){
             cout << '\t';
         }
-        cout << current->getRight()->getInformation() << "c" << endl;
+        cout << current->getRight()->getInformation() << endl;
     }
     if(current->getRightGroup() != NULL){
         print(current->getRightGroup(), count + 1);
